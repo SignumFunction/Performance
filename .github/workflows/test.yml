@@ -30,6 +30,8 @@ jobs:
           while true; do
             sleep 60
             echo "h"
+            echo "s"
+
           done
         ) | timeout 3600 ./test/test || true
       working-directory: ${{ github.workspace }}
