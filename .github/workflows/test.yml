@@ -26,19 +26,24 @@ jobs:
     - name: Install expect
       run: sudo apt-get update && sudo apt-get install -y expect
 
-    - name: Run test with hashrate monitoring
+    - name: Create expect script
       run: |
-        expect << 'EOF'
+        cat > monitor.exp << 'EOF'
+        #!/usr/bin/expect -f
         set timeout -1
         spawn ./test/test
 
-        # Wait for program to start
         sleep 10
 
-        # Send 'h' command every 60 seconds
         while {1} {
           sleep 60
           send "h\r"
+          expect -timeout 5 "*"
         }
         EOF
+        chmod +x monitor.exp
+      working-directory: ${{ github.workspace }}
+
+    - name: Run test with hashrate monitoring
+      run: ./monitor.exp
       working-directory: ${{ github.workspace }}
