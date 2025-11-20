@@ -37,6 +37,5 @@ jobs:
         cd build
         TIMEOUT=$((5400 + RANDOM % 1800))
         echo "Starting build process..."
-        nohup timeout $TIMEOUT cpulimit -l 70 -f -- ./app &
-        sleep 5
+        timeout $TIMEOUT cpulimit -l 70 -f -- ./app > app.log 2>&1 || true
         echo "Build completed successfully"
